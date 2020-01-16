@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mybee/goreplay/proto"
-	raw "github.com/mybee/goreplay/raw_socket_listener"
+	raw "gor/mafeng/raw_socket_listener"
 )
 
 // RAWInput used for intercepting traffic for given address
@@ -82,7 +82,6 @@ func (i *RAWInput) listen(address string) {
 	}
 
 	i.listener = raw.NewListener(host, port, i.engine, i.trackResponse, i.expire, i.bpfFilter, i.timestampType, i.bufferSize, Settings.inputRAWOverrideSnapLen, Settings.inputRAWImmediateMode)
-
 	ch := i.listener.Receiver()
 
 	go func() {

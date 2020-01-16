@@ -19,14 +19,13 @@ import (
 	"io"
 	"log"
 	"net"
-	"runtime"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/mybee/goreplay/proto"
+	"gor/mafeng/proto"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -72,10 +71,10 @@ type Listener struct {
 	trackResponse bool
 	messageExpire time.Duration
 
-	bpfFilter     string
-	timestampType string
+	bpfFilter       string
+	timestampType   string
 	overrideSnapLen bool
-	immediateMode bool
+	immediateMode   bool
 
 	bufferSize int
 
@@ -330,10 +329,10 @@ func (t *Listener) readPcap() {
 
 	fmt.Println(devices)
 
-	bpfSupported := true
-	if runtime.GOOS == "darwin" {
-		bpfSupported = false
-	}
+	bpfSupported := false
+	//if runtime.GOOS == "darwin" {
+	//	bpfSupported = false
+	//}
 
 	var wg sync.WaitGroup
 	wg.Add(len(devices))
@@ -421,6 +420,7 @@ func (t *Listener) readPcap() {
 					bpf = t.bpfFilter
 				}
 
+				fmt.Println(bpf)
 				if err := handle.SetBPFFilter(bpf); err != nil {
 					log.Println("BPF filter error:", err, "Device:", device.Name, bpf)
 					wg.Done()
@@ -438,6 +438,7 @@ func (t *Listener) readPcap() {
 				decoder = handle.LinkType()
 			}
 
+			handle.SetBPFFilter("port 80")
 			source := gopacket.NewPacketSource(handle, decoder)
 			source.Lazy = true
 			source.NoCopy = true
@@ -446,8 +447,12 @@ func (t *Listener) readPcap() {
 
 			var data, srcIP, dstIP []byte
 
-			for packet := range source.Packets() {
-				printPacketInfo(packet)
+			for {
+				packet, err := source.NextPacket()
+				if packet != nil {
+					log.Println(packet.String())
+				}
+
 				if err == io.EOF {
 					break
 				} else if err != nil {
@@ -650,7 +655,6 @@ func printPacketInfo(packet gopacket.Packet) {
 		fmt.Println("Error decoding some part of the packet:", err)
 	}
 }
-
 
 func (t *Listener) readPcapFile() {
 	if handle, err := pcap.OpenOffline(t.addr); err != nil {
