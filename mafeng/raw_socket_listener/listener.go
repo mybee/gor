@@ -716,6 +716,7 @@ func (t *Listener) readPcapFile() {
 				continue
 			}
 
+			fmt.Println("🚙", addr)
 			t.packetsChan <- t.buildPacket(addr, data, packet.Metadata().Timestamp)
 		}
 	}
