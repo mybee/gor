@@ -450,7 +450,7 @@ func (t *Listener) readPcap() {
 			for {
 				packet, err := source.NextPacket()
 				if packet != nil {
-					printPacketInfo(packet)
+					//printPacketInfo(packet)
 				}
 
 				if err == io.EOF {
