@@ -446,8 +446,7 @@ func (t *Listener) readPcap() {
 
 			var data, srcIP, dstIP []byte
 
-			for {
-				packet, err := source.NextPacket()
+			for packet := range source.Packets() {
 				printPacketInfo(packet)
 				if err == io.EOF {
 					break
