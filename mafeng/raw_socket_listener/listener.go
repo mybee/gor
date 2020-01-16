@@ -329,7 +329,7 @@ func (t *Listener) readPcap() {
 
 	fmt.Println(devices)
 
-	bpfSupported := false
+	bpfSupported := true
 	//if runtime.GOOS == "darwin" {
 	//	bpfSupported = false
 	//}
@@ -407,26 +407,26 @@ func (t *Listener) readPcap() {
 				}
 			}
 
-			if bpfSupported {
-				var bpf string
-
-				if t.trackResponse {
-					bpf = "(tcp dst port " + strconv.Itoa(int(t.port)) + " and (" + bpfDstHost + ")) or (" + "tcp src port " + strconv.Itoa(int(t.port)) + " and (" + bpfSrcHost + "))"
-				} else {
-					bpf = "tcp dst port " + strconv.Itoa(int(t.port)) + " and (" + bpfDstHost + ")"
-				}
-
-				if t.bpfFilter != "" {
-					bpf = t.bpfFilter
-				}
-
-				fmt.Println(bpf)
-				if err := handle.SetBPFFilter(bpf); err != nil {
-					log.Println("BPF filter error:", err, "Device:", device.Name, bpf)
-					wg.Done()
-					return
-				}
-			}
+			//if bpfSupported {
+			//	var bpf string
+			//
+			//	if t.trackResponse {
+			//		bpf = "(tcp dst port " + strconv.Itoa(int(t.port)) + " and (" + bpfDstHost + ")) or (" + "tcp src port " + strconv.Itoa(int(t.port)) + " and (" + bpfSrcHost + "))"
+			//	} else {
+			//		bpf = "tcp dst port " + strconv.Itoa(int(t.port)) + " and (" + bpfDstHost + ")"
+			//	}
+			//
+			//	if t.bpfFilter != "" {
+			//		bpf = t.bpfFilter
+			//	}
+			//
+			//	fmt.Println(bpf)
+			//	if err := handle.SetBPFFilter(bpf); err != nil {
+			//		log.Println("BPF filter error:", err, "Device:", device.Name, bpf)
+			//		wg.Done()
+			//		return
+			//	}
+			//}
 			t.mu.Unlock()
 
 			var decoder gopacket.Decoder
