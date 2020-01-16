@@ -447,8 +447,7 @@ func (t *Listener) readPcap() {
 
 			var data, srcIP, dstIP []byte
 
-			for {
-				packet, err := source.NextPacket()
+			for packet := range source.Packets() {
 				if packet != nil {
 					//printPacketInfo(packet)
 				}
@@ -456,6 +455,7 @@ func (t *Listener) readPcap() {
 				if err == io.EOF {
 					break
 				} else if err != nil {
+					fmt.Println("🚕", err)
 					continue
 				}
 
@@ -491,6 +491,7 @@ func (t *Listener) readPcap() {
 
 					// Truncated IP info
 					if len(data) < int(ihl*4) {
+						fmt.Println("🚛", data)
 						continue
 					}
 
@@ -499,11 +500,13 @@ func (t *Listener) readPcap() {
 
 					// Too small IP packet
 					if ipLength < 20 {
+						fmt.Println("🚜", data)
 						continue
 					}
 
 					// Invalid length
 					if int(ihl*4) > ipLength {
+						fmt.Println("🚖", data)
 						continue
 					}
 
@@ -511,6 +514,7 @@ func (t *Listener) readPcap() {
 						data = data[:ipLength]
 					} else if cmp < 0 {
 						// Truncated packet
+						fmt.Println("⛴", data)
 						continue
 					}
 
@@ -518,6 +522,7 @@ func (t *Listener) readPcap() {
 				} else {
 					// Truncated IP info
 					if len(data) < 40 {
+						fmt.Println("🛥", data)
 						continue
 					}
 
@@ -529,6 +534,7 @@ func (t *Listener) readPcap() {
 
 				// Truncated TCP info
 				if len(data) <= 13 {
+					fmt.Println("🚘", data)
 					continue
 				}
 
@@ -553,6 +559,7 @@ func (t *Listener) readPcap() {
 						}
 
 						if len(addrCheck) == 0 {
+							fmt.Println("🚈", data)
 							continue
 						}
 
@@ -575,12 +582,14 @@ func (t *Listener) readPcap() {
 							for _, a := range device.Addresses {
 								if a.IP.Equal(net.IP(addrCheck)) {
 									addrMatched = true
+									fmt.Println("⛽️", data)
 									break
 								}
 							}
 						}
 
 						if !addrMatched {
+							fmt.Println("🚀", data)
 							continue
 						}
 					}
