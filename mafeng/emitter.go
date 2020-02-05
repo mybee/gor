@@ -2,7 +2,6 @@ package mafeng
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"log"
 	"time"
@@ -14,12 +13,14 @@ func Start(stop chan int) {
 		middleware := NewMiddleware(Settings.middleware)
 
 		for _, in := range Plugins.Inputs {
+			//fmt.Println("🛰", in)
 			middleware.ReadFrom(in)
 		}
 
 		// We are going only to read responses, so using same ReadFrom method
 		for _, out := range Plugins.Outputs {
 			if r, ok := out.(io.Reader); ok {
+				//fmt.Println("⛺️", r)
 				middleware.ReadFrom(r)
 			}
 		}
@@ -83,7 +84,7 @@ func CopyMulty(src io.Reader, writers ...io.Writer) (err error) {
 	for {
 		nr, er := src.Read(buf)
 
-		fmt.Println("🚙", string(buf))
+		//fmt.Println("🚙", string(buf))
 
 		if er == io.EOF {
 			return nil
@@ -163,6 +164,7 @@ func CopyMulty(src io.Reader, writers ...io.Writer) (err error) {
 				}
 			} else {
 				for _, dst := range writers {
+					//fmt.Println(dst, "🚜")
 					if _, err := dst.Write(payload); err != nil {
 						return err
 					}

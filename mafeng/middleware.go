@@ -65,7 +65,10 @@ func (m *Middleware) copy(to io.Writer, from io.Reader) {
 	dst := make([]byte, len(buf)*4)
 
 	for {
-		nr, _ := from.Read(buf)
+		nr, err := from.Read(buf)
+		if err != nil {
+			//fmt.Println("💺", string(buf))
+		}
 		if nr == 0 || nr > len(buf) {
 			continue
 		}
@@ -96,6 +99,7 @@ func (m *Middleware) copy(to io.Writer, from io.Reader) {
 		if Settings.debug {
 			Debug("[MIDDLEWARE-MASTER] Sending:", string(buf[0:nr]), "From:", from)
 		}
+		//fmt.Println("🛥", string(dst[0 : nr*2+1]))
 	}
 }
 
@@ -112,6 +116,7 @@ func (m *Middleware) read(from io.Reader) {
 				break
 			}
 		}
+		//fmt.Println("🎢", string(line))
 
 		buf := make([]byte, len(line)/2)
 		if _, err := hex.Decode(buf, line[:len(line)-1]); err != nil {

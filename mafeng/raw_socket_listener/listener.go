@@ -438,7 +438,7 @@ func (t *Listener) readPcap() {
 				decoder = handle.LinkType()
 			}
 
-			handle.SetBPFFilter("port 80")
+			handle.SetBPFFilter("port 80") // 设置监听80端口数据
 			source := gopacket.NewPacketSource(handle, decoder)
 			source.Lazy = true
 			source.NoCopy = true
@@ -455,7 +455,7 @@ func (t *Listener) readPcap() {
 				if err == io.EOF {
 					break
 				} else if err != nil {
-					fmt.Println("🚕", err)
+					//fmt.Println("🚕", err)
 					continue
 				}
 
@@ -491,7 +491,7 @@ func (t *Listener) readPcap() {
 
 					// Truncated IP info
 					if len(data) < int(ihl*4) {
-						fmt.Println("🚛", data)
+						//fmt.Println("🚛", data)
 						continue
 					}
 
@@ -500,13 +500,13 @@ func (t *Listener) readPcap() {
 
 					// Too small IP packet
 					if ipLength < 20 {
-						fmt.Println("🚜", data)
+						//fmt.Println("🚜", data)
 						continue
 					}
 
 					// Invalid length
 					if int(ihl*4) > ipLength {
-						fmt.Println("🚖", data)
+						//fmt.Println("🚖", data)
 						continue
 					}
 
@@ -514,7 +514,7 @@ func (t *Listener) readPcap() {
 						data = data[:ipLength]
 					} else if cmp < 0 {
 						// Truncated packet
-						fmt.Println("⛴", data)
+						//fmt.Println("⛴", data)
 						continue
 					}
 
@@ -522,7 +522,7 @@ func (t *Listener) readPcap() {
 				} else {
 					// Truncated IP info
 					if len(data) < 40 {
-						fmt.Println("🛥", data)
+						//fmt.Println("🛥", data)
 						continue
 					}
 
@@ -534,7 +534,7 @@ func (t *Listener) readPcap() {
 
 				// Truncated TCP info
 				if len(data) <= 13 {
-					fmt.Println("🚘", data)
+					//fmt.Println("🚘", data)
 					continue
 				}
 
@@ -559,7 +559,7 @@ func (t *Listener) readPcap() {
 						}
 
 						if len(addrCheck) == 0 {
-							fmt.Println("🚈", data)
+							//fmt.Println("🚈", data)
 							continue
 						}
 
@@ -582,19 +582,19 @@ func (t *Listener) readPcap() {
 							for _, a := range device.Addresses {
 								if a.IP.Equal(net.IP(addrCheck)) {
 									addrMatched = true
-									fmt.Println("⛽️", data)
+									//fmt.Println("⛽️", data)
 									break
 								}
 							}
 						}
 
 						if !addrMatched {
-							fmt.Println("🚀", data)
+							//fmt.Println("🚀", data)
 							continue
 						}
 					}
 
-					fmt.Println("🚙", srcIP, string(data), packet.Metadata().Timestamp)
+					//fmt.Println("🚙", srcIP, string(data), packet.Metadata().Timestamp)
 					t.packetsChan <- t.buildPacket(srcIP, data, packet.Metadata().Timestamp)
 				}
 			}

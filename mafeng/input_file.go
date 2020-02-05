@@ -48,19 +48,18 @@ func (f *fileInputReader) parseNext() error {
 
 			f.timestamp, _ = strconv.ParseInt(string(meta[2]), 10, 64)
 			f.data = asBytes[:len(asBytes)-1]
-
+			//fmt.Println("🏔", string(f.data))
 			return nil
 		}
 
 		buffer.Write(line)
 	}
-
 	return nil
 }
 
 func (f *fileInputReader) ReadPayload() []byte {
 	defer f.parseNext()
-
+	//fmt.Println("🌠", string(f.data))
 	return f.data
 }
 func (f *fileInputReader) Close() error {
@@ -92,6 +91,7 @@ func NewFileInputReader(path string) *fileInputReader {
 	}
 
 	r.parseNext()
+	//fmt.Println("🗾", string(r.data))
 
 	return r
 }
@@ -158,6 +158,7 @@ func (i *FileInput) init() (err error) {
 
 func (i *FileInput) Read(data []byte) (int, error) {
 	buf := <-i.data
+	//fmt.Println("🚄🏍", string(buf))
 	copy(data, buf)
 
 	return len(buf), nil
@@ -171,11 +172,13 @@ func (i *FileInput) String() string {
 func (i *FileInput) nextReader() (next *fileInputReader) {
 	for _, r := range i.readers {
 		if r == nil || r.file == nil {
+			//fmt.Println("🚓")
 			continue
 		}
 
 		if next == nil || r.timestamp < next.timestamp {
 			next = r
+			//fmt.Println("🛳")
 			continue
 		}
 	}
@@ -184,6 +187,7 @@ func (i *FileInput) nextReader() (next *fileInputReader) {
 }
 
 var CloseCh chan int
+var timeDiff int64 = 0
 
 func (i *FileInput) emit() {
 	var lastTime int64 = -1
@@ -191,11 +195,12 @@ func (i *FileInput) emit() {
 	for {
 		select {
 		case <-i.exit:
+			//fmt.Println("🚘")
 			return
 		default:
 		}
 
-		reader := i.nextReader()
+		reader := i.nextReader() // 下一个文件
 
 		if reader == nil {
 			if i.loop {
@@ -203,10 +208,19 @@ func (i *FileInput) emit() {
 				lastTime = -1
 				continue
 			} else {
+				//fmt.Println("🚜")
 				break
 			}
 		}
 
+		//u := time.Now()
+		s := reader.ReadPayload()
+		//if !isRequestPayload(s) {
+		//	continue
+		//}
+		//fmt.Println("🚂", time.Now().Sub(u))
+
+		//fmt.Println(lastTime)
 		if lastTime != -1 {
 			diff := reader.timestamp - lastTime
 			lastTime = reader.timestamp
@@ -214,20 +228,28 @@ func (i *FileInput) emit() {
 			if i.speedFactor != 1 {
 				diff = int64(float64(diff) / i.speedFactor)
 			}
+			timeDiff += diff
+			//fmt.Println("🛥", time.Duration(timeDiff))
 
-			time.Sleep(time.Duration(diff))
+			if timeDiff > 0 {
+				time.Sleep(time.Duration(timeDiff))
+				timeDiff = 0
+			}
+
 		} else {
 			lastTime = reader.timestamp
 		}
 
-		i.data <- reader.ReadPayload()
+		//fmt.Println("👁",  string(s))
+		i.data <- s
+		//fmt.Println("⛵️")
 	}
 
 	log.Printf("FileInput: end of file '%s'\n", i.path)
 
 	// For now having fixed timeout is temporary solution
 	// Further should be modified, so outputs can report if their queue empty or not
-	time.Sleep(time.Second)
+	time.Sleep(4 * time.Second)
 	if CloseCh != nil {
 		close(CloseCh)
 	}
